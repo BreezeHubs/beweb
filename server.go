@@ -1,6 +1,8 @@
 package beweb
 
-import "net/http"
+import (
+	"net/http"
+)
 
 type HandleFunc func(ctx *Context)
 

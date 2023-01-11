@@ -1,6 +1,7 @@
 package beweb
 
 import (
+	"regexp"
 	"strings"
 )
 
@@ -31,6 +32,9 @@ type node struct {
 	//路由参数匹配的节点
 	paramChild *node
 
+	//路由正则匹配的节点
+	regExpChild *node
+
 	handler HandleFunc
 }
 
@@ -49,11 +53,30 @@ func newRouter() *router {
 
 // 查找或创建对应的path
 func (n *node) childOrCreate(path string) *node {
+	//验证是否正则
+	if checkRouteRegExp(path) {
+		//判断是否同时存在通配符路由
+		if n.startChild != nil {
+			panic("不允许同时存在正则路由和通配符路由，已存在通配符路由[" + path + "]")
+		}
+		//判断是否同时存在参数路由
+		if n.paramChild != nil {
+			panic("不允许同时存在正则路由和参数路由，已存在参数路由[" + path + "]")
+		}
+
+		n.regExpChild = &node{path: getRouteRegExp(path)}
+		return n.regExpChild
+	}
+
 	//参数路由处理
 	if path[0] == ':' {
 		//判断是否同时存在通配符路由
 		if n.startChild != nil {
 			panic("不允许同时存在参数路由和通配符路由，已存在通配符路由[" + path + "]")
+		}
+		//判断是否同时存在正则路由
+		if n.regExpChild != nil {
+			panic("不允许同时存在正则路由和通配符路由，已存在正则路由[" + path + "]")
 		}
 
 		n.paramChild = &node{path: path}
@@ -65,6 +88,10 @@ func (n *node) childOrCreate(path string) *node {
 		//判断是否同时存在通配符路由
 		if n.paramChild != nil {
 			panic("不允许同时存在参数路由和通配符路由，已存在参数路由[" + path + "]")
+		}
+		//判断是否同时存在正则路由
+		if n.regExpChild != nil {
+			panic("不允许同时存在参数路由和正则路由，已存在正则路由[" + path + "]")
 		}
 
 		//不存在则创建
@@ -98,6 +125,17 @@ func (n *node) childOf(path string) (*node, bool, bool) {
 		if n.paramChild != nil {
 			return n.paramChild, true, true
 		}
+
+		//正则路由匹配
+		if n.regExpChild != nil {
+			//fmt.Println(n.regExpChild.path, path)
+			//fmt.Println(regexp.MatchString(n.regExpChild.path, path))
+			ok, err := regexp.MatchString(n.regExpChild.path, path)
+			if ok && err == nil {
+				return n.regExpChild, true, true
+			}
+		}
+
 		return n.startChild, false, n.startChild != nil //通配符匹配
 	}
 	child, ok := n.children[path]
@@ -105,6 +143,11 @@ func (n *node) childOf(path string) (*node, bool, bool) {
 		//参数路由匹配
 		if n.paramChild != nil {
 			return n.paramChild, true, true
+		}
+
+		//正则路由匹配
+		if n.regExpChild != nil {
+			return n.regExpChild, true, true
 		}
 
 		//通配符匹配
@@ -217,4 +260,24 @@ func (r *router) findRoute(method string, path string) (*matchInfo, bool) {
 		pathParams: pathParams,
 	}, true
 	//return root, root.handler != nil
+}
+
+var regFlag = "Reg###:"
+
+// RouteRegExp 设置路由正则
+func RouteRegExp(reg string) string {
+	return regFlag + reg
+}
+
+// 获取路由正则
+func getRouteRegExp(reg string) string {
+	return strings.TrimLeft(reg, regFlag)
+}
+
+// 检查是否是路由正则
+func checkRouteRegExp(reg string) bool {
+	if len(reg) < 8 {
+		return false
+	}
+	return regFlag == reg[:7]
 }

@@ -1,6 +1,8 @@
 package beweb
 
-import "net/http"
+import (
+	"net/http"
+)
 
 var _ IHTTPServer = &HTTPServer{}
 

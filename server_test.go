@@ -16,10 +16,20 @@ func TestServer(t *testing.T) {
 	h.Get("/order/detail", func(ctx *Context) {
 		ctx.Resp.Write([]byte("hello world"))
 	})
+	//h.Get("/"+RouteRegExp("order")+"/detail", func(ctx *Context) {
+	//	ctx.Resp.Write([]byte("hello world"))
+	//})
 
-	h.Get("/order/*", func(ctx *Context) {
+	h.Get("/orderorder/*", func(ctx *Context) {
 		ctx.Resp.Write([]byte("hello, " + ctx.Req.URL.Path))
 	})
+	h.Get("/test/"+RouteRegExp("^\\d{4}-\\d{8}$"), func(ctx *Context) {
+		ctx.Resp.Write([]byte("hello, " + ctx.Req.URL.Path))
+	})
+
+	//h.Get("/order/*", func(ctx *Context) {
+	//	ctx.Resp.Write([]byte("hello, " + ctx.Req.URL.Path))
+	//})
 
 	h.Get("/*/abc", func(ctx *Context) {
 		ctx.Resp.Write([]byte("hello, abc " + ctx.Req.URL.Path))

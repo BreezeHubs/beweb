@@ -1,9 +1,9 @@
 package beweb
 
 import (
-	"encoding/json"
 	"errors"
 	"strconv"
+	"unsafe"
 )
 
 type stringValue struct {
@@ -143,6 +143,7 @@ func (c *Context) BindJSON(value any) error {
 	return d.Decode(value)
 }
 
+// 转换格式
 func (s stringValue) String() (string, error) {
 	if s.err != nil {
 		return "", s.err
@@ -157,18 +158,24 @@ func (s stringValue) Int64() (int64, error) {
 	return strconv.ParseInt(s.value, 10, 64)
 }
 
-func (s stringValue) Int32() (int32, error) {
-	if s.err != nil {
-		return 0, s.err
-	}
-	val, err := strconv.ParseInt(s.value, 10, 32)
-	return int32(val), err
-}
-
 func (s stringValue) Int() (int, error) {
 	if s.err != nil {
 		return 0, s.err
 	}
 	val, err := strconv.ParseInt(s.value, 10, 64)
 	return int(val), err
+}
+
+func (s stringValue) Bool() (bool, error) {
+	if s.err != nil {
+		return false, s.err
+	}
+	return strconv.ParseBool(s.value)
+}
+
+func (s stringValue) Bytes() ([]byte, error) {
+	if s.err != nil {
+		return nil, s.err
+	}
+	return *(*[]byte)(unsafe.Pointer(&s.value)), nil
 }
