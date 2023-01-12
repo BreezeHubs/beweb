@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/BreezeHubs/beweb"
 	"github.com/BreezeHubs/beweb/util"
+	"net/http"
+	"time"
 )
 
 func main() {
@@ -105,6 +107,15 @@ func main() {
 			Id:   id,
 			Name: "haha",
 		})
+	})
+
+	h.Get("cookie", func(ctx *beweb.Context) {
+		ck := &http.Cookie{
+			Name:    "test",
+			Value:   "test",
+			Expires: time.Now().Add(1 * time.Hour),
+		}
+		ctx.SetCookie(ck)
 	})
 
 	h.Start(":8080")

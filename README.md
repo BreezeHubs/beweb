@@ -4,6 +4,7 @@
 ![](./resource/beweb-route.png)
 
 ### 创建服务
+服务配置后面再安排，先鸽着[狗头]
 ```go
 //创建服务
 h := beweb.NewHTTPServer()
@@ -129,5 +130,17 @@ h.Get("response/xml", func(ctx *beweb.Context) {
     "id":   "1",
     "name": "haha",
     })
+})
+```
+
+### cookie
+```go
+h.Get("cookie", func(ctx *beweb.Context) {
+    ck := &http.Cookie{
+        Name:    "test",
+        Value:   "test",
+        Expires: time.Now().Add(1 * time.Hour),
+    }
+    ctx.SetCookie(ck)
 })
 ```
