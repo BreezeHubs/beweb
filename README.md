@@ -240,3 +240,34 @@ run后使用一次Ctrl+c触发退出，两次则强制退出
 test：进行一些回收动作...  
 test：回收完成  
 exit  
+
+<br>
+
+定义输入输出的access log
+```go
+mdl := NewMiddlewareBuilder().
+    LogInputFunc(func(ctx *beweb.Context) (string, error) {
+        l := struct {
+            ServerName string `json:"server_name"`
+            Host       string `json:"host"`
+            Route      string `json:"route"` //完整的命中的路由
+            HTTPMethod string `json:"http_method"`
+            Path       string `json:"path"`
+        }{
+            ServerName: "test-server",
+            Host:       ctx.Req.Host,
+            Route:      ctx.MatchedRoute, //完整的命中的路由
+            HTTPMethod: ctx.Req.Method,
+            Path:       ctx.Req.URL.Path,
+        }
+        data, err := json.Marshal(l)
+        return string(data), err
+    }).
+    LogOutFunc(func(logString string, err error) {
+        fmt.Println(logString)
+    }).Build()
+
+s := beweb.NewHTTPServer(
+    beweb.WithMiddlewares(mdl),
+)
+```
