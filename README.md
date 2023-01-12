@@ -1,6 +1,6 @@
 # beweb
 
-------------------  
+<br>
 
 ## 1 web框架主体与router
 ![](./resource/beweb-route.png)
