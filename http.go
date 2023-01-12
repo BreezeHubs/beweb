@@ -8,6 +8,9 @@ var _ IHTTPServer = &HTTPServer{}
 
 type HTTPServer struct {
 	*router //存储路由树
+
+	isGracefullyExit     bool   //是否开启优雅退出，默认关闭
+	isGracefullyExitFunc func() //自定义的优雅退出之前的回收操作
 }
 
 // http.Handler接口 需要定义的方法

@@ -10,7 +10,13 @@ import (
 
 func main() {
 	//创建服务
-	h := beweb.NewHTTPServer()
+	h := beweb.NewHTTPServer(
+		beweb.WithGracefullyExit(true, func() {
+			fmt.Println("test：进行一些回收动作...")
+			time.Sleep(2 * time.Second)
+			fmt.Println("test：回收完成")
+		}),
+	)
 
 	//创建静态路由
 	h.Get("/user", func(ctx *beweb.Context) {
