@@ -1,9 +1,61 @@
 # beweb
 
-## web框架主体与router
+------------------  
+
+## 1 web框架主体与router
 ![](./resource/beweb-route.png)
 
-### 创建服务
+<br>
+
+## 2 middleware设计
+
+<br>
+
+### 2.1 AOP
+
+<br>
+
+### 2.2 access log
+
+<br>
+
+### 2.3 Trace，OpenTelemetry
+
+<br>
+
+### 2.4 Prometheus
+
+<br>
+
+### 2.5 error page
+
+<br>
+
+### 2.6panic recover
+
+<br>
+
+## 3 other part
+
+<br>
+
+### 3.1 页面模板引擎
+
+<br>
+
+### 3.2 文件处理
+
+<br>
+
+### 3.3 Session
+
+<br>
+
+## 4 使用
+
+<br>
+
+### 4.1 创建服务
 服务配置后面再安排，先鸽着[狗头]
 ```go
 //创建服务
@@ -12,7 +64,9 @@ h := beweb.NewHTTPServer()
 h.Start(":8080")
 ```
 
-### 创建路由
+<br>
+
+### 4.2 创建路由
 path 限制：
 - 不支持空字符串
 - 必须以 / 开头
@@ -59,7 +113,9 @@ h.Get("/info/Reg(^\\d{4}-\\d{8}$)", func(ctx *beweb.Context) {
 })
 ```
 
-### 获取参数
+<br>
+
+### 4.3 获取参数
 ```go
 h.Get("/param/:name", func(ctx *beweb.Context) {
     //获取路由参数
@@ -109,7 +165,9 @@ h.Get("/param/:name", func(ctx *beweb.Context) {
 })
 ```
 
-### 响应数据
+<br>
+
+### 4.4 响应数据
 ```go
 //返回字符串
 h.Get("/response", func(ctx *beweb.Context) {
@@ -142,7 +200,9 @@ h.Get("/response/xml", func(ctx *beweb.Context) {
 })
 ```
 
-### cookie
+<br>
+
+### 4.5 cookie
 ```go
 h.Get("/cookie", func(ctx *beweb.Context) {
     ck := &http.Cookie{
@@ -154,7 +214,9 @@ h.Get("/cookie", func(ctx *beweb.Context) {
 })
 ```
 
-### 服务配置
+<br>
+
+### 4.6 服务配置
 优雅退出设置
 ```go
 //创建服务
