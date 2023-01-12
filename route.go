@@ -21,6 +21,8 @@ type router struct {
 }
 
 type node struct {
+	route string //完整的命中的路由
+
 	path string //路由数分支
 
 	//【静态路由】匹配的节点
@@ -163,6 +165,7 @@ func (r *router) addRoute(method string, path string, handleFunc HandleFunc) {
 			r.routePanicPrint(method, path, errors.New("路径不能重复注册"))
 		}
 		root.handler = handleFunc
+		root.route = "/"
 		return
 	}
 
@@ -185,6 +188,7 @@ func (r *router) addRoute(method string, path string, handleFunc HandleFunc) {
 		r.routePanicPrint(method, path, errors.New("路径不能重复注册"))
 	}
 	root.handler = handleFunc
+	root.route = path
 }
 
 // findRoute 路由匹配时调用

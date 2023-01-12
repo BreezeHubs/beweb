@@ -12,5 +12,5 @@ type Context struct {
 	QueryParams map[string]string //url get参数缓存
 	FormParams  map[string]string //表单参数缓存
 
-	MatchedRoute string //命中的路由
+	MatchedRoute string //完整的命中的路由
 }

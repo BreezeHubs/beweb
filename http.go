@@ -42,6 +42,6 @@ func (s *HTTPServer) serve(ctx *Context) {
 	}
 
 	ctx.PathParams = info.pathParams //路由参数
-	ctx.MatchedRoute = info.n.path
-	info.n.handler(ctx) //执行对应路由的服务
+	ctx.MatchedRoute = info.n.route  //完整的命中的路由
+	info.n.handler(ctx)              //执行对应路由的服务
 }
