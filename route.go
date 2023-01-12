@@ -60,7 +60,7 @@ func newRouter() *router {
 	2、route: /test/*\/user            => http://127.0.0.1:8080/test/abc/user
 	3、route: /test/Reg(^\d{4}-\d{8}$) => http://127.0.0.1:8080/test/0931-87562388
 
-	互相不能共存，只能和【静态路由】共存
+	互相不能共存，2、3能和【静态路由】共存
 */
 func (n *node) childOrCreate(path string) (*node, error) {
 	//【参数路由】处理
