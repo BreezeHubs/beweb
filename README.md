@@ -153,3 +153,21 @@ h.Get("/cookie", func(ctx *beweb.Context) {
     ctx.SetCookie(ck)
 })
 ```
+
+### 服务配置
+优雅退出设置
+```go
+//创建服务
+h := beweb.NewHTTPServer(
+    beweb.WithGracefullyExit(true, func() {
+        fmt.Println("test：进行一些回收动作...")
+        time.Sleep(2 * time.Second)
+        fmt.Println("test：回收完成")
+    }),
+)
+```
+run后使用一次Ctrl+c触发退出，两次则强制退出  
+> E:\beweb\cmd> go run .  
+test：进行一些回收动作...  
+test：回收完成  
+exit  
