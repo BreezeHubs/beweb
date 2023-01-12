@@ -105,6 +105,17 @@ func main() {
 		})
 	})
 
+	h.Get("/response/yaml", func(ctx *beweb.Context) {
+		type xml struct {
+			Id   int    `xml:"id"`
+			Name string `xml:"name"`
+		}
+		util.ResponseYAML(ctx, 200, &xml{
+			Id:   1,
+			Name: "haha",
+		})
+	})
+
 	h.Get("/xml/:id", func(ctx *beweb.Context) {
 		type xml struct {
 			Id   int    `xml:"id"`
