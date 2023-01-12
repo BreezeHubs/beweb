@@ -112,31 +112,39 @@ h.Get("/param/:name", func(ctx *beweb.Context) {
 ### 响应数据
 ```go
 //返回字符串
-h.Get("response", func(ctx *beweb.Context) {
+h.Get("/response", func(ctx *beweb.Context) {
     ctx.Response(200, []byte("success"))
 })
 
 //使用扩展包 import "github.com/BreezeHubs/beweb/util"
 //json
-h.Get("response/json", func(ctx *beweb.Context) {
-    util.ResponseJSON(ctx, 200, "SUCCESS", "请求成功", map[string]string{
-    "id":   "1",
-    "name": "haha",
+h.Get("/response/json", func(ctx *beweb.Context) {
+    type xml struct {
+        Id   int    `xml:"id"`
+        Name string `xml:"name"`
+    }
+    util.ResponseJSON(ctx, 200, "SUCCESS", "请求成功", &xml{
+        Id:   1,
+        Name: "haha",
     })
 })
 
 //xml
-h.Get("response/xml", func(ctx *beweb.Context) {
-    util.ResponseXML(ctx, 200, map[string]string{
-    "id":   "1",
-    "name": "haha",
+h.Get("/response/xml", func(ctx *beweb.Context) {
+    type xml struct {
+        Id   int    `xml:"id"`
+        Name string `xml:"name"`
+    }
+    util.ResponseXML(ctx, 200, &xml{
+        Id:   1,
+        Name: "haha",
     })
 })
 ```
 
 ### cookie
 ```go
-h.Get("cookie", func(ctx *beweb.Context) {
+h.Get("/cookie", func(ctx *beweb.Context) {
     ck := &http.Cookie{
         Name:    "test",
         Value:   "test",
