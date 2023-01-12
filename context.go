@@ -11,4 +11,6 @@ type Context struct {
 	PathParams  map[string]string //路由参数缓存
 	QueryParams map[string]string //url get参数缓存
 	FormParams  map[string]string //表单参数缓存
+
+	MatchedRoute string //命中的路由
 }

@@ -9,7 +9,7 @@ import (
 
 type HandleFunc func(ctx *Context)
 
-func NewHTTPServer(opts ...HTTPServerOpt) IHTTPServer {
+func NewHTTPServer(opts ...HTTPServerOpt) *HTTPServer {
 	s := &HTTPServer{
 		router: newRouter(),
 	}

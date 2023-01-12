@@ -9,3 +9,10 @@ func WithGracefullyExit(b bool, fn func()) HTTPServerOpt {
 		s.isGracefullyExitFunc = fn
 	}
 }
+
+// WithMiddlewares 添加中间件
+func WithMiddlewares(fn ...Middleware) HTTPServerOpt {
+	return func(s *HTTPServer) {
+		s.middlewares = append(s.middlewares, fn...)
+	}
+}
