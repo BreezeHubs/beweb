@@ -5,6 +5,9 @@ import "net/http"
 type IHTTPServer interface {
 	http.Handler
 
+	/*
+		请求方法
+	*/
 	Get(path string, handleFunc HandleFunc)
 	Post(path string, handleFunc HandleFunc)
 	Delete(path string, handleFunc HandleFunc)
@@ -12,6 +15,8 @@ type IHTTPServer interface {
 	Options(path string, handleFunc HandleFunc)
 	Put(path string, handleFunc HandleFunc)
 	Patch(path string, handleFunc HandleFunc)
+	Connect(path string, handleFunc HandleFunc)
+	Trace(path string, handleFunc HandleFunc)
 
 	// Start 运行web服务
 	Start(addr string) error

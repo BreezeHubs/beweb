@@ -2,6 +2,7 @@ package beweb
 
 import (
 	"fmt"
+	"github.com/BreezeHubs/beweb/util"
 	"testing"
 )
 
@@ -23,7 +24,10 @@ func TestServer(t *testing.T) {
 	h.Get("/orderorder/*", func(ctx *Context) {
 		ctx.Resp.Write([]byte("hello, " + ctx.Req.URL.Path))
 	})
-	h.Get("/test/"+RouteRegExp("^\\d{4}-\\d{8}$"), func(ctx *Context) {
+	//h.Get("/test/*", func(ctx *Context) {
+	//	ctx.Resp.Write([]byte("hello, " + ctx.Req.URL.Path))
+	//})
+	h.Get("/test/Reg(^\\d{4}-\\d{8}$)", func(ctx *Context) {
 		ctx.Resp.Write([]byte("hello, " + ctx.Req.URL.Path))
 	})
 
@@ -41,6 +45,18 @@ func TestServer(t *testing.T) {
 
 	h.Get("/param/:id", func(ctx *Context) {
 		ctx.Resp.Write([]byte("hello, param " + ctx.PathParams["id"]))
+	})
+
+	h.Get("/xml/:id", func(ctx *Context) {
+		type xml struct {
+			Id   int    `xml:"id"`
+			Name string `xml:"name"`
+		}
+		id, _ := ctx.PathParam("id").Int()
+		util.ResponseXML(ctx, 200, &xml{
+			Id:   id,
+			Name: "haha",
+		})
 	})
 
 	h.Start(":8080")

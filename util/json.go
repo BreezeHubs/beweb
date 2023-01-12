@@ -1,9 +1,9 @@
 package util
 
 import (
-	"encoding/json"
 	"errors"
 	"github.com/BreezeHubs/beweb"
+	jsoniter "github.com/json-iterator/go"
 	"net/http"
 	"strconv"
 )
@@ -15,6 +15,8 @@ var (
 	JSONFailMessage    = "请求错误"
 	JSONErrorReason    = "SERVER_ERROR"
 	JSONErrorMessage   = "系统异常"
+
+	json = jsoniter.ConfigCompatibleWithStandardLibrary
 )
 
 type Response struct {

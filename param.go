@@ -1,6 +1,7 @@
 package beweb
 
 import (
+	"encoding/json"
 	"errors"
 	"strconv"
 	"unsafe"
@@ -92,7 +93,7 @@ func (c *Context) QueryParam(key string) stringValue {
 }
 
 // QueryValueAll 获取url get的所有值
-func (c *Context) QueryValueAll(key string) map[string]string {
+func (c *Context) QueryValueAll() map[string]string {
 	if c.QueryParams == nil {
 		c.initQueryValue()
 	}
