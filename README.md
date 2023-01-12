@@ -20,9 +20,10 @@ path 限制：
 - 中间不能有连续的 ///
 
 优先级：  
-- route: /test/:id                => http://127.0.0.1:8080/test/1  
-- route: /test/*\/user            => http://127.0.0.1:8080/test/abc/user  
-- route: /test/Reg(^\d{4}-\d{8}$) => http://127.0.0.1:8080/test/0931-87562388   
+- 【静态路由】  route: /test/123                => http://127.0.0.1:8080/test/123  
+- 【参数路由】  route: /test/:id                => http://127.0.0.1:8080/test/1  
+- 【通配符路由】 route: /test/*\/user            => http://127.0.0.1:8080/test/abc/user  
+- 【正则路由】  route: /test/Reg(^\d{4}-\d{8}$) => http://127.0.0.1:8080/test/0931-87562388   
 
 互相不能共存，会导致painc，只能和【静态路由】共存 
 例如：  
