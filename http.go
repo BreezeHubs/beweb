@@ -2,6 +2,7 @@ package beweb
 
 import (
 	"net/http"
+	"time"
 )
 
 var _ IHTTPServer = &HTTPServer{}
@@ -11,8 +12,9 @@ type HTTPServer struct {
 
 	middlewares []Middleware
 
-	isGracefullyExit     bool   //是否开启优雅退出，默认关闭
-	isGracefullyExitFunc func() //自定义的优雅退出之前的回收操作
+	isGracefullyExit     bool          //是否开启优雅退出，默认关闭，默认false
+	isGracefullyExitFunc func()        //自定义的优雅退出之前的回收操作，默认nil
+	shutdownTimeout      time.Duration //优雅退出超时，默认30s
 }
 
 // http.Handler接口 需要定义的方法
@@ -40,6 +42,12 @@ func (s *HTTPServer) serve(ctx *Context) {
 		_, _ = ctx.Resp.Write([]byte("NOT FOUND"))
 		return
 	}
+
+	//初始化body、Form、url get、请求头参数
+	ctx.initBody()
+	ctx.initFormValue()
+	ctx.initQueryValue()
+	ctx.initHeaderValue()
 
 	ctx.PathParams = info.pathParams //路由参数
 	ctx.MatchedRoute = info.n.route  //完整的命中的路由

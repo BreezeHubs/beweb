@@ -1,6 +1,7 @@
 package beweb
 
 import (
+	"context"
 	"fmt"
 	"github.com/BreezeHubs/bekit/sys"
 	"net/http"
@@ -11,7 +12,8 @@ type HandleFunc func(ctx *Context)
 
 func NewHTTPServer(opts ...HTTPServerOpt) *HTTPServer {
 	s := &HTTPServer{
-		router: newRouter(),
+		router:          newRouter(),
+		shutdownTimeout: 30 * time.Second,
 	}
 
 	//执行配置
@@ -27,7 +29,12 @@ func (s *HTTPServer) Start(addr string) error {
 	//创建退出信号监听
 	signal := sys.NewListenExitSignal()
 
-	go http.ListenAndServe(addr, s) //http server
+	//创建http server
+	server := &http.Server{Addr: addr, Handler: s}
+	errChan := make(chan error, 1)
+	go func() {
+		errChan <- server.ListenAndServe() //run http server
+	}()
 
 	//监听退出信号
 	for !signal.IsExit() {
@@ -37,9 +44,17 @@ func (s *HTTPServer) Start(addr string) error {
 
 	//进行一些回收动作...
 	if s.isGracefullyExit {
+		ctx, cancel := context.WithTimeout(context.Background(), s.shutdownTimeout)
+		defer cancel()
+		err := server.Shutdown(ctx)
+
+		//执行自定义回收
 		s.isGracefullyExitFunc()
+
+		fmt.Println("beweb gracefully exit")
+		return err
 	}
 
-	fmt.Println("exit")
-	return nil
+	err := <-errChan
+	return err
 }

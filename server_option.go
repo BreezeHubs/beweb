@@ -1,5 +1,7 @@
 package beweb
 
+import "time"
+
 type HTTPServerOpt func(*HTTPServer)
 
 // WithGracefullyExit 优雅退出设置
@@ -14,5 +16,12 @@ func WithGracefullyExit(b bool, fn func()) HTTPServerOpt {
 func WithMiddlewares(fn ...Middleware) HTTPServerOpt {
 	return func(s *HTTPServer) {
 		s.middlewares = append(s.middlewares, fn...)
+	}
+}
+
+// WithShutdownTimeout 设置优雅退出超时
+func WithShutdownTimeout(timeout time.Duration) HTTPServerOpt {
+	return func(s *HTTPServer) {
+		s.shutdownTimeout = timeout
 	}
 }
