@@ -3,7 +3,7 @@
 <br>
 
 ## 1 web框架主体与router
-![](./resource/beweb-route.png)
+![beweb-route](./resource/beweb-route.png)
 
 <br>
 
@@ -22,7 +22,9 @@
 <br>
 
 ### 2.2 access log
-
+请求日志，支持自定义输入和输出  
+通过链式调用，暴露`LogOutFunc`和`LogInputFunc`接口方便用户扩展输入输出
+![accesslog](./resource/accesslog.png)
 
 <br>
 
@@ -224,7 +226,15 @@ h.Get("/cookie", func(ctx *beweb.Context) {
 <br>
 
 ### 4.6 服务配置
+http退出超时设置
+```go
+s := beweb.NewHTTPServer(
+    beweb.WithShutdownTimeout(10*time.Second),
+)
+```
+
 优雅退出设置
+WithGracefullyExit(是否开启，回收操作，回收超时)
 ```go
 //创建服务
 h := beweb.NewHTTPServer(
@@ -232,7 +242,7 @@ h := beweb.NewHTTPServer(
         fmt.Println("test：进行一些回收动作...")
         time.Sleep(2 * time.Second)
         fmt.Println("test：回收完成")
-    }),
+    }, 10*time.Second),
 )
 ```
 run后使用一次Ctrl+c触发退出，两次则强制退出  

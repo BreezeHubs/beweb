@@ -12,8 +12,9 @@ type HandleFunc func(ctx *Context)
 
 func NewHTTPServer(opts ...HTTPServerOpt) *HTTPServer {
 	s := &HTTPServer{
-		router:          newRouter(),
-		shutdownTimeout: 30 * time.Second,
+		router:                newRouter(),
+		gracefullyExitTimeout: 30 * time.Second,
+		shoutdownTimeout:      10 * time.Second,
 	}
 
 	//执行配置
@@ -44,12 +45,22 @@ func (s *HTTPServer) Start(addr string) error {
 
 	//进行一些回收动作...
 	if s.isGracefullyExit {
-		ctx, cancel := context.WithTimeout(context.Background(), s.shutdownTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), s.shoutdownTimeout)
 		defer cancel()
 		err := server.Shutdown(ctx)
 
-		//执行自定义回收
-		s.isGracefullyExitFunc()
+		done := make(chan struct{}, 1)
+		go func() {
+			//执行自定义回收
+			s.isGracefullyExitFunc()
+			done <- struct{}{}
+		}()
+
+		select {
+		case <-done:
+		case <-time.After(s.gracefullyExitTimeout):
+			fmt.Println("beweb gracefully timeout")
+		}
 
 		fmt.Println("beweb gracefully exit")
 		return err

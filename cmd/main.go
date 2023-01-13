@@ -5,6 +5,7 @@ import (
 	"github.com/BreezeHubs/beweb"
 	"github.com/BreezeHubs/beweb/middlewares/accesslog"
 	"github.com/BreezeHubs/beweb/util"
+	"time"
 )
 
 func main() {
@@ -151,6 +152,8 @@ func main() {
 
 	s := beweb.NewHTTPServer(
 		beweb.WithMiddlewares(mdl),
+		beweb.WithGracefullyExit(true, nil, 10*time.Second),
+		beweb.WithShutdownTimeout(10*time.Second),
 	)
 
 	s.Post("/a/*/c", func(ctx *beweb.Context) {

@@ -5,10 +5,14 @@ import "time"
 type HTTPServerOpt func(*HTTPServer)
 
 // WithGracefullyExit 优雅退出设置
-func WithGracefullyExit(b bool, fn func()) HTTPServerOpt {
+func WithGracefullyExit(b bool, fn func(), timeout ...time.Duration) HTTPServerOpt {
 	return func(s *HTTPServer) {
 		s.isGracefullyExit = b
 		s.isGracefullyExitFunc = fn
+
+		if len(timeout) > 0 {
+			s.gracefullyExitTimeout = timeout[0]
+		}
 	}
 }
 
@@ -19,9 +23,9 @@ func WithMiddlewares(fn ...Middleware) HTTPServerOpt {
 	}
 }
 
-// WithShutdownTimeout 设置优雅退出超时
+// WithShutdownTimeout 设置http退出超时
 func WithShutdownTimeout(timeout time.Duration) HTTPServerOpt {
 	return func(s *HTTPServer) {
-		s.shutdownTimeout = timeout
+		s.shoutdownTimeout = timeout
 	}
 }

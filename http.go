@@ -12,9 +12,11 @@ type HTTPServer struct {
 
 	middlewares []Middleware
 
-	isGracefullyExit     bool          //是否开启优雅退出，默认关闭，默认false
-	isGracefullyExitFunc func()        //自定义的优雅退出之前的回收操作，默认nil
-	shutdownTimeout      time.Duration //优雅退出超时，默认30s
+	isGracefullyExit      bool          //是否开启优雅退出，默认关闭，默认false
+	isGracefullyExitFunc  func()        //自定义的优雅退出之前的回收操作，默认nil
+	gracefullyExitTimeout time.Duration //优雅退出超时，默认30s
+
+	shoutdownTimeout time.Duration //http退出超时，默认10s
 }
 
 // http.Handler接口 需要定义的方法
