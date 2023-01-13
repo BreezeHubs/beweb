@@ -29,6 +29,29 @@
 <br>
 
 ### 2.3 Trace，OpenTelemetry
+tracing：开源工具有SkyWalking、Zipkin、Jeager等   
+为摆脱第三方依赖，可以提供API做自定义扩展：    
+- Log API  
+- Config API  
+- Tracing API  
+- Metrics API  
+  
+缺点：  
+- 过度设计：有些原API只有一种默认实现，而且不愿意为框架接口提供扩展实现  
+- API设计局限性：问题在于易用性、扩展性等主观性太强  
+
+对以上考虑，`beweb`依赖`OpenTelemetry API`作为抽象层  
+OpenTelemetry是OpenTracing和OpenCensus合并而来，属于新时代的可观测平台  
+- 同时支持logging、tracing、metrics  
+- 提供了各种语言的SDK  
+- 适配了各种开源框架，如：Zipkin、Jeager、Prometheus  
+
+OpenTelemetry使用  
+TraceProvider：用于构造tracer实例   
+tracer：追踪者，需要一个instrumentationName，一般来说就是指构造tracer的地方的包名（保证唯一性）  
+span：用于调用tracer上的start方法，如果传入的context已经有一个span，那么新创建的span就是span的子span。span结尾必须调用end   
+
+
 
 <br>
 
@@ -40,7 +63,7 @@
 
 <br>
 
-### 2.6panic recover
+### 2.6 panic recover
 
 <br>
 

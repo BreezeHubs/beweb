@@ -32,9 +32,8 @@ func (s *HTTPServer) Start(addr string) error {
 
 	//创建http server
 	server := &http.Server{Addr: addr, Handler: s}
-	errChan := make(chan error, 1)
 	go func() {
-		errChan <- server.ListenAndServe() //run http server
+		server.ListenAndServe() //run http server
 	}()
 
 	//监听退出信号
@@ -66,6 +65,5 @@ func (s *HTTPServer) Start(addr string) error {
 		return err
 	}
 
-	err := <-errChan
-	return err
+	return nil
 }

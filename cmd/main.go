@@ -155,6 +155,9 @@ func main() {
 		beweb.WithGracefullyExit(true, nil, 10*time.Second),
 		beweb.WithShutdownTimeout(10*time.Second),
 	)
+	s.Get("/hello", func(ctx *beweb.Context) {
+		util.ResponseJSONSuccess(ctx, nil)
+	})
 
 	s.Post("/a/*/c", func(ctx *beweb.Context) {
 		type xml struct {
