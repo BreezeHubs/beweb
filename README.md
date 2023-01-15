@@ -145,11 +145,11 @@ s.Get("/info/Reg(^\\d{4}-\\d{8}$)", func(ctx *beweb.Context) {
 })
 ```
 
-路由分组和middleware
-group 限制：
-- 必须以 / 开头
-- 不能以 / 结尾
-- 中间不能有连续的 ///
+路由分组和middleware  
+group 限制：  
+- 必须以 / 开头  
+- 不能以 / 结尾  
+- 中间不能有连续的 ///  
 ```go
 m1 := beweb.Middleware(func(next beweb.HandleFunc) beweb.HandleFunc {
     return func(ctx *beweb.Context) {
