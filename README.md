@@ -51,11 +51,10 @@ TraceProvider：用于构造tracer实例
 tracer：追踪者，需要一个instrumentationName，一般来说就是指构造tracer的地方的包名（保证唯一性）  
 span：用于调用tracer上的start方法，如果传入的context已经有一个span，那么新创建的span就是span的子span。span结尾必须调用end   
 
-
-
 <br>
 
 ### 2.4 Prometheus
+已支持，参考demo即可
 
 <br>
 
@@ -88,12 +87,11 @@ span：用于调用tracer上的start方法，如果传入的context已经有一�
 <br>
 
 ### 4.1 创建服务
-服务配置后面再安排，先鸽着[狗头]
 ```go
 //创建服务
-h := beweb.NewHTTPServer()
+s := beweb.NewHTTPServer()
 //运行
-h.Start(":8080")
+s.Start(":8080")
 ```
 
 <br>
@@ -114,10 +112,10 @@ path 限制：
 互相不能共存，会导致painc，只能和【静态路由】共存 
 例如：  
 ```go
-h.Get("/user/:id", func(ctx *beweb.Context) {
+s.Get("/user/:id", func(ctx *beweb.Context) {
     fmt.Println("hello user")
 })
-h.Get("/user/*/abc", func(ctx *beweb.Context) {
+s.Get("/user/*/abc", func(ctx *beweb.Context) {
     fmt.Println("hello user")
 })
 ```
@@ -125,22 +123,22 @@ h.Get("/user/*/abc", func(ctx *beweb.Context) {
 
 ```go
 //创建静态路由
-h.Get("/user", func(ctx *beweb.Context) {
+s.Get("/user", func(ctx *beweb.Context) {
     fmt.Println("hello world")
 })
 
 //创建路由参数路由
-h.Get("/user/:id", func(ctx *beweb.Context) {
+s.Get("/user/:id", func(ctx *beweb.Context) {
     fmt.Println("hello user")
 })
 
 //创建通配符路由
-h.Get("/order/*/detail", func(ctx *beweb.Context) {
+s.Get("/order/*/detail", func(ctx *beweb.Context) {
     fmt.Println("hello order")
 })
 
 //创建正则路由
-h.Get("/info/Reg(^\\d{4}-\\d{8}$)", func(ctx *beweb.Context) {
+s.Get("/info/Reg(^\\d{4}-\\d{8}$)", func(ctx *beweb.Context) {
     fmt.Println("hello info")
 })
 ```
@@ -149,7 +147,7 @@ h.Get("/info/Reg(^\\d{4}-\\d{8}$)", func(ctx *beweb.Context) {
 
 ### 4.3 获取参数
 ```go
-h.Get("/param/:name", func(ctx *beweb.Context) {
+s.Get("/param/:name", func(ctx *beweb.Context) {
     //获取路由参数
     value, err := ctx.PathValue("name")
     fmt.Println(value, err)
@@ -202,13 +200,13 @@ h.Get("/param/:name", func(ctx *beweb.Context) {
 ### 4.4 响应数据
 ```go
 //返回字符串
-h.Get("/response", func(ctx *beweb.Context) {
+s.Get("/response", func(ctx *beweb.Context) {
     ctx.Response(200, []byte("success"))
 })
 
 //使用扩展包 import "github.com/BreezeHubs/beweb/util"
 //json
-h.Get("/response/json", func(ctx *beweb.Context) {
+s.Get("/response/json", func(ctx *beweb.Context) {
     type xml struct {
         Id   int    `xml:"id"`
         Name string `xml:"name"`
@@ -220,7 +218,7 @@ h.Get("/response/json", func(ctx *beweb.Context) {
 })
 
 //xml
-h.Get("/response/xml", func(ctx *beweb.Context) {
+s.Get("/response/xml", func(ctx *beweb.Context) {
     type xml struct {
         Id   int    `xml:"id"`
         Name string `xml:"name"`
@@ -236,7 +234,7 @@ h.Get("/response/xml", func(ctx *beweb.Context) {
 
 ### 4.5 cookie
 ```go
-h.Get("/cookie", func(ctx *beweb.Context) {
+s.Get("/cookie", func(ctx *beweb.Context) {
     ck := &http.Cookie{
         Name:    "test",
         Value:   "test",
@@ -260,7 +258,7 @@ s := beweb.NewHTTPServer(
 WithGracefullyExit(是否开启，回收操作，回收超时)
 ```go
 //创建服务
-h := beweb.NewHTTPServer(
+s := beweb.NewHTTPServer(
     beweb.WithGracefullyExit(true, func() {
         fmt.Println("test：进行一些回收动作...")
         time.Sleep(2 * time.Second)
@@ -303,4 +301,147 @@ mdl := NewMiddlewareBuilder().
 s := beweb.NewHTTPServer(
     beweb.WithMiddlewares(mdl),
 )
+```
+
+链路追踪
+```go
+tracer := otel.GetTracerProvider().Tracer(instrumentationName)
+builder := NewMiddlewareBuilder().SetTrace(tracer).Build()
+
+s := beweb.NewHTTPServer(
+    beweb.WithMiddlewares(builder),
+)
+
+s.Get("/user", func(ctx *beweb.Context) {
+    c, span := tracer.Start(ctx.Req.Context(), "first_layer")
+    defer span.End()
+
+    secondC, second := tracer.Start(c, "second_layer")
+    time.Sleep(time.Second)
+
+    _, third1 := tracer.Start(secondC, "third_layer_1")
+    time.Sleep(100 * time.Millisecond)
+    third1.End()
+
+    _, third2 := tracer.Start(secondC, "third_layer_2")
+    time.Sleep(300 * time.Millisecond)
+    third2.End()
+
+    second.End()
+
+    _, first := tracer.Start(ctx.Req.Context(), "first_layer_1")
+    defer first.End()
+
+    time.Sleep(100 * time.Millisecond)
+
+    util.ResponseJSONSuccess(ctx, struct {
+        Id   int    `json:"id"`
+        Name string `json:"name"`
+    }{
+        Id:   1,
+        Name: "breeze",
+    })
+})
+
+initZipkin() //or initJeager()
+//访问：http://localhost:9411/zipkin/
+
+s.Start(":8080")
+```
+initZipkin()
+```go
+func initZipkin() {
+	url := "http://localhost:9411/api/v2/spans"
+	serviceName := "opentelemetry-demo"
+
+	exporter, err := zipkin.New(
+		url,
+		zipkin.WithLogger(
+			log.New(os.Stderr, serviceName, log.Ldate|log.Ltime|log.Llongfile),
+		),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	tp := sdktrace.NewTracerProvider(
+		sdktrace.WithSpanProcessor(
+			sdktrace.NewBatchSpanProcessor(exporter),
+		),
+		sdktrace.WithResource(resource.NewWithAttributes(
+			semconv.SchemaURL,
+			semconv.ServiceNameKey.String(serviceName),
+			attribute.String("environment", "dev"),
+			attribute.Int64("ID", 1),
+		)),
+	)
+	otel.SetTracerProvider(tp)
+}
+```
+initJeager()
+```go
+func initJeager() {
+	url := "http://localhost:14268/api/traces"
+	serviceName := "opentelemetry-demo"
+
+	exp, err := jaeger.New(
+		jaeger.WithCollectorEndpoint(
+			jaeger.WithEndpoint(url),
+		),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	tp := sdktrace.NewTracerProvider(
+		// Always be sure to batch in production.
+		sdktrace.WithBatcher(exp),
+		// Record information about this application in a Resource.
+		sdktrace.WithResource(resource.NewWithAttributes(
+			semconv.SchemaURL,
+			semconv.ServiceNameKey.String(serviceName),
+			attribute.String("environment", "dev"),
+			attribute.Int64("ID", 1),
+		)),
+	)
+	otel.SetTracerProvider(tp)
+}
+```
+
+<br>
+
+prometheus
+```go
+builder := NewMiddlewareBuilder(
+    "breeze",
+    "web",
+    "http_response",
+    nil,
+).Build()
+
+s := beweb.NewHTTPServer(
+    beweb.WithMiddlewares(builder),
+)
+
+s.Get("/user", func(ctx *beweb.Context) {
+    //暂停随机时间，查看监控
+    val := rand.Intn(1000) + 1
+    time.Sleep(time.Duration(val) * time.Millisecond)
+
+    util.ResponseJSONSuccess(ctx, struct {
+        Id   int    `json:"id"`
+        Name string `json:"name"`
+    }{
+        Id:   1,
+        Name: "breeze",
+    })
+})
+
+//prometheus http
+go func() {
+    http.Handle("/metrics", promhttp.Handler())
+    http.ListenAndServe(":8082", nil)
+}()
+
+s.Start(":8080")
 ```

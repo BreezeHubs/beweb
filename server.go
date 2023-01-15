@@ -14,7 +14,7 @@ func NewHTTPServer(opts ...HTTPServerOpt) *HTTPServer {
 	s := &HTTPServer{
 		router:                newRouter(),
 		gracefullyExitTimeout: 30 * time.Second,
-		shoutdownTimeout:      10 * time.Second,
+		shutdownTimeout:       10 * time.Second,
 	}
 
 	//执行配置
@@ -33,7 +33,10 @@ func (s *HTTPServer) Start(addr string) error {
 	//创建http server
 	server := &http.Server{Addr: addr, Handler: s}
 	go func() {
-		server.ListenAndServe() //run http server
+		//run http server
+		if err := server.ListenAndServe(); err != nil {
+			panic(err)
+		}
 	}()
 
 	//监听退出信号
@@ -44,7 +47,7 @@ func (s *HTTPServer) Start(addr string) error {
 
 	//进行一些回收动作...
 	if s.isGracefullyExit {
-		ctx, cancel := context.WithTimeout(context.Background(), s.shoutdownTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), s.shutdownTimeout)
 		defer cancel()
 		err := server.Shutdown(ctx)
 
@@ -61,7 +64,7 @@ func (s *HTTPServer) Start(addr string) error {
 			fmt.Println("beweb gracefully timeout")
 		}
 
-		fmt.Println("beweb gracefully exit")
+		fmt.Println("beweb exit")
 		return err
 	}
 

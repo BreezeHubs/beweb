@@ -26,6 +26,6 @@ func WithMiddlewares(fn ...Middleware) HTTPServerOpt {
 // WithShutdownTimeout 设置http退出超时
 func WithShutdownTimeout(timeout time.Duration) HTTPServerOpt {
 	return func(s *HTTPServer) {
-		s.shoutdownTimeout = timeout
+		s.shutdownTimeout = timeout
 	}
 }

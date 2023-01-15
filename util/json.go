@@ -35,9 +35,13 @@ func ResponseJSON(c *beweb.Context, code int, reason, message string, value any)
 		return errors.New("ResponseJSON: " + err.Error())
 	}
 
-	c.Resp.Header().Set("Content-Type", "application/json;charset=utf-8")
-	c.Resp.Header().Set("Content-Length", strconv.Itoa(len(bytes)))
-	return c.Response(code, bytes)
+	if c.Resp != nil {
+		c.Resp.Header().Set("Content-Type", "application/json;charset=utf-8")
+		c.Resp.Header().Set("Content-Length", strconv.Itoa(len(bytes)))
+	}
+
+	c.Response(code, bytes)
+	return nil
 }
 
 // ResponseJSONSuccess 请求成功

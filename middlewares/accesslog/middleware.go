@@ -21,25 +21,27 @@ func NewMiddlewareBuilder() *MiddlewareBuilder {
 		logInputFunc: func(ctx *beweb.Context) (string, error) {
 			// 默认log数据
 			type accessLog struct {
-				Time       string `json:"time"`
-				Host       string `json:"host"`
-				Route      string `json:"route"` //命中的路由
-				HTTPMethod string `json:"http_method"`
-				Path       string `json:"path"`
-				//Header     map[string]string `json:"header"`
-				//Body       string             `json:"body"`
-				//Response   beweb.ResponseData `json:"response"`
+				Time            string            `json:"time"`
+				Host            string            `json:"host"`
+				Route           string            `json:"route"` //命中的路由
+				HTTPMethod      string            `json:"http_method"`
+				Path            string            `json:"path"`
+				Header          map[string]string `json:"header"`
+				Body            string            `json:"body"`
+				ResponseStatus  int               `json:"response_status"`
+				ResponseContent string            `json:"response_content"`
 			}
 
 			l := accessLog{
-				Time:       time.Now().Format("2006-01-02 15:04:05.999999999"),
-				Host:       ctx.Req.Host,
-				Route:      ctx.MatchedRoute, //完整的命中的路由
-				HTTPMethod: ctx.Req.Method,
-				Path:       ctx.Req.URL.Path,
-				//Header:     ctx.HeaderParams,
-				//Body:       ctx.Body.GetBody(),
-				//Response:   ctx.ResponseData,
+				Time:            time.Now().Format("2006-01-02 15:04:05.999999999"),
+				Host:            ctx.Req.Host,
+				Route:           ctx.MatchedRoute, //完整的命中的路由
+				HTTPMethod:      ctx.Req.Method,
+				Path:            ctx.Req.URL.Path,
+				Header:          ctx.HeaderParams,
+				Body:            ctx.Body.GetBody(),
+				ResponseStatus:  ctx.ResponseStatus,
+				ResponseContent: string(ctx.ResponseContent),
 			}
 
 			data, err := json.Marshal(l)

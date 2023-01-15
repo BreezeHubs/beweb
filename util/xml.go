@@ -16,5 +16,6 @@ func ResponseXML(c *beweb.Context, code int, value any) error {
 
 	c.Resp.Header().Set("Content-Type", "application/xml;charset=utf-8")
 	c.Resp.Header().Set("Content-Length", strconv.Itoa(len(bytes)))
-	return c.Response(code, bytes)
+	c.Response(code, bytes)
+	return nil
 }

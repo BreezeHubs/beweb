@@ -40,6 +40,14 @@ func TestMiddlewareBuilder_Build(t *testing.T) {
 
 	s.Post("/a/*/c", func(ctx *beweb.Context) {
 		fmt.Println("hello")
+		ctx.Response(200, []byte(`{"Id":1,"Name":"breeze"}`))
+		//util.ResponseJSON(ctx, 200, "", "", struct {
+		//	Id   int    `json:"id"`
+		//	Name string `json:"name"`
+		//}{
+		//	Id:   1,
+		//	Name: "breeze",
+		//})
 	})
 	req, _ := http.NewRequest(http.MethodPost, "/a/b/c", nil)
 	req.Host = "127.0.0.1"

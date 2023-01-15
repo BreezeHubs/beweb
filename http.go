@@ -16,7 +16,7 @@ type HTTPServer struct {
 	isGracefullyExitFunc  func()        //自定义的优雅退出之前的回收操作，默认nil
 	gracefullyExitTimeout time.Duration //优雅退出超时，默认30s
 
-	shoutdownTimeout time.Duration //http退出超时，默认10s
+	shutdownTimeout time.Duration //http退出超时，默认10s
 }
 
 // http.Handler接口 需要定义的方法
@@ -31,7 +31,28 @@ func (s *HTTPServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		root = s.middlewares[i](root)
 	}
 
+	//将response刷新给ctx.Resp
+	var m Middleware = func(next HandleFunc) HandleFunc {
+		return func(ctx *Context) {
+			next(ctx)
+
+			s.flashResponseData(ctx) //将response刷新给ctx.Resp
+		}
+	}
+	s.flashResponseData(ctx)
+
+	root = m(root)
 	root(ctx) //处理路由
+}
+
+// 将response刷新给ctx.Resp
+func (s *HTTPServer) flashResponseData(ctx *Context) {
+	if ctx.ResponseStatus != 0 {
+		ctx.Resp.WriteHeader(ctx.ResponseStatus)
+	}
+	if ctx.ResponseContent != nil && len(ctx.ResponseContent) > 0 {
+		_, _ = ctx.Resp.Write(ctx.ResponseContent)
+	}
 }
 
 // Serve 路由解析
@@ -40,8 +61,8 @@ func (s *HTTPServer) serve(ctx *Context) {
 	info, ok := s.findRoute(ctx.Req.Method, ctx.Req.URL.Path)
 	if !ok || info.n.handler == nil { //路由不存在 或 未设置handler
 		//路由没有命中，404
-		ctx.Resp.WriteHeader(http.StatusNotFound)
-		_, _ = ctx.Resp.Write([]byte("NOT FOUND"))
+		ctx.ResponseStatus = 404
+		ctx.ResponseContent = []byte("NOT FOUND")
 		return
 	}
 
