@@ -145,6 +145,45 @@ s.Get("/info/Reg(^\\d{4}-\\d{8}$)", func(ctx *beweb.Context) {
 })
 ```
 
+路由分组和middleware
+group 限制：
+- 必须以 / 开头
+- 不能以 / 结尾
+- 中间不能有连续的 ///
+```go
+m1 := beweb.Middleware(func(next beweb.HandleFunc) beweb.HandleFunc {
+    return func(ctx *beweb.Context) {
+        fmt.Println("m1")
+        next(ctx)
+    }
+})
+m2 := beweb.Middleware(func(next beweb.HandleFunc) beweb.HandleFunc {
+    return func(ctx *beweb.Context) {
+        fmt.Println("m2")
+        next(ctx)
+    }
+})
+m3 := beweb.Middleware(func(next beweb.HandleFunc) beweb.HandleFunc {
+    return func(ctx *beweb.Context) {
+        fmt.Println("m3")
+        next(ctx)
+    }
+})
+
+s := beweb.NewHTTPServer()
+
+group := s.Group("/api/v1", m1, m2)
+group.Get("/user", func(ctx *beweb.Context) {
+    ctx.Response(200, []byte("user"))
+}, m3)
+
+s.Get("/name", func(ctx *beweb.Context) {
+    ctx.Response(200, []byte("name"))
+})
+
+s.Start(":8080")
+```
+
 <br>
 
 ### 4.3 获取参数

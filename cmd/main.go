@@ -3,9 +3,6 @@ package main
 import (
 	"fmt"
 	"github.com/BreezeHubs/beweb"
-	"github.com/BreezeHubs/beweb/middlewares/accesslog"
-	"github.com/BreezeHubs/beweb/util"
-	"time"
 )
 
 func main() {
@@ -145,29 +142,60 @@ func main() {
 	//
 	//h.Start(":8080")
 
-	mdl := accesslog.NewMiddlewareBuilder().
-		LogOutFunc(func(logString string, err error) {
-			fmt.Println(logString)
-		}).Build()
+	//mdl := accesslog.NewMiddlewareBuilder().
+	//	LogOutFunc(func(logString string, err error) {
+	//		fmt.Println(logString)
+	//	}).Build()
+	//
+	//s := beweb.NewHTTPServer(
+	//	beweb.WithMiddlewares(mdl),
+	//	beweb.WithGracefullyExit(true, nil, 10*time.Second),
+	//	beweb.WithShutdownTimeout(10*time.Second),
+	//)
+	//s.Get("/hello", func(ctx *beweb.Context) {
+	//	util.ResponseJSONSuccess(ctx, nil)
+	//})
+	//
+	//s.Post("/a/*/c", func(ctx *beweb.Context) {
+	//	type xml struct {
+	//		Id   int    `xml:"id"`
+	//		Name string `xml:"name"`
+	//	}
+	//	util.ResponseXML(ctx, 200, &xml{
+	//		Id:   1,
+	//		Name: "haha",
+	//	})
+	//})
 
-	s := beweb.NewHTTPServer(
-		beweb.WithMiddlewares(mdl),
-		beweb.WithGracefullyExit(true, nil, 10*time.Second),
-		beweb.WithShutdownTimeout(10*time.Second),
-	)
-	s.Get("/hello", func(ctx *beweb.Context) {
-		util.ResponseJSONSuccess(ctx, nil)
-	})
-
-	s.Post("/a/*/c", func(ctx *beweb.Context) {
-		type xml struct {
-			Id   int    `xml:"id"`
-			Name string `xml:"name"`
+	m1 := beweb.Middleware(func(next beweb.HandleFunc) beweb.HandleFunc {
+		return func(ctx *beweb.Context) {
+			fmt.Println("m1")
+			next(ctx)
 		}
-		util.ResponseXML(ctx, 200, &xml{
-			Id:   1,
-			Name: "haha",
-		})
 	})
+	m2 := beweb.Middleware(func(next beweb.HandleFunc) beweb.HandleFunc {
+		return func(ctx *beweb.Context) {
+			fmt.Println("m2")
+			next(ctx)
+		}
+	})
+	m3 := beweb.Middleware(func(next beweb.HandleFunc) beweb.HandleFunc {
+		return func(ctx *beweb.Context) {
+			fmt.Println("m3")
+			next(ctx)
+		}
+	})
+
+	s := beweb.NewHTTPServer()
+
+	group := s.Group("/api/v1", m1, m2)
+	group.Get("/user", func(ctx *beweb.Context) {
+		ctx.Response(200, []byte("user"))
+	}, m3)
+
+	s.Get("/name", func(ctx *beweb.Context) {
+		ctx.Response(200, []byte("name"))
+	})
+
 	s.Start(":8080")
 }

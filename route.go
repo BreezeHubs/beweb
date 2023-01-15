@@ -21,6 +21,8 @@ type router struct {
 }
 
 type node struct {
+	group string //路由分组
+
 	route string //完整的命中的路由
 
 	path string //路由数分支
@@ -40,6 +42,9 @@ type node struct {
 
 	//执行方法
 	handler HandleFunc
+
+	//middlewares
+	middlewares []Middleware
 }
 
 // 路由参数
@@ -128,6 +133,26 @@ func (n *node) childOrCreate(path string) (*node, error) {
 	return res, nil
 }
 
+// 检查group格式
+func (r *router) checkGroupName(group, method, path string) {
+	if group != "" {
+		if group[0] != '/' {
+			r.routePanicPrint(group, method, path, errors.New("group 必须以 / 开头"))
+		}
+		if group != "/" && group[len(group)-1] == '/' {
+			r.routePanicPrint(group, method, path, errors.New("group 不能以 / 结尾"))
+		}
+		segs := strings.Split(path[1:], "/")
+		for _, seg := range segs {
+			//中间不能有连续的 ///
+			if seg == "" {
+				r.routePanicPrint(group, method, path, errors.New("group 中间不能有连续的 //"))
+			}
+		}
+		path = group + path
+	}
+}
+
 /*
 addRoute：设置为私有方法，防止用户method乱传
 path 加些限制：
@@ -136,18 +161,21 @@ path 加些限制：
   - 不能以 / 结尾
   - 中间不能有连续的 ///
 */
-func (r *router) addRoute(method string, path string, handleFunc HandleFunc) {
+func (r *router) addRoute(group, method string, path string, handleFunc HandleFunc, middlewares ...Middleware) {
+	// 检查group格式
+	r.checkGroupName(group, method, path)
+
 	//验证
 	if path == "" {
-		r.routePanicPrint(method, path, errors.New("路径不支持空字符串"))
+		r.routePanicPrint(group, method, path, errors.New("路径不支持空字符串"))
 	}
 	//必须以 / 开头
 	if path[0] != '/' {
-		r.routePanicPrint(method, path, errors.New("路径必须以 / 开头"))
+		r.routePanicPrint(group, method, path, errors.New("路径必须以 / 开头"))
 	}
 	//不能以 / 结尾
 	if path != "/" && path[len(path)-1] == '/' {
-		r.routePanicPrint(method, path, errors.New("路径不能以 / 结尾"))
+		r.routePanicPrint(group, method, path, errors.New("路径不能以 / 结尾"))
 	}
 
 	//找到树第一层：method请求方式
@@ -162,33 +190,40 @@ func (r *router) addRoute(method string, path string, handleFunc HandleFunc) {
 	if path == "/" {
 		//检查根节点重复注册
 		if root.handler != nil {
-			r.routePanicPrint(method, path, errors.New("路径不能重复注册"))
+			r.routePanicPrint(group, method, path, errors.New("路径不能重复注册"))
 		}
 		root.handler = handleFunc
 		root.route = "/"
+		root.group = group
+		root.middlewares = middlewares
 		return
 	}
+
+	path = group + path //合并group 和 path
 
 	//切割path //path[1:] 去除最前面的斜杠，防止切分出空数组
 	segs := strings.Split(path[1:], "/")
 	for _, seg := range segs {
 		//中间不能有连续的 ///
 		if seg == "" {
-			r.routePanicPrint(method, path, errors.New("路径中间不能有连续的 //"))
+			r.routePanicPrint(group, method, path, errors.New("路径中间不能有连续的 //"))
 		}
 
 		//递归站准位置。中途节点不存在，就要创建
 		child, err := root.childOrCreate(seg)
 		if err != nil {
-			r.routePanicPrint(method, path, err)
+			r.routePanicPrint(group, method, path, err)
 		}
 		root = child
 	}
 	if root.handler != nil {
-		r.routePanicPrint(method, path, errors.New("路径不能重复注册"))
+		r.routePanicPrint(group, method, path, errors.New("路径不能重复注册"))
 	}
 	root.handler = handleFunc
 	root.route = path
+	root.group = group
+	root.middlewares = middlewares
+	return
 }
 
 // findRoute 路由匹配时调用
@@ -214,7 +249,7 @@ func (r *router) findRoute(method string, path string) (*matchInfo, bool) {
 	for _, seg := range segs {
 		//中间不能有连续的 ///
 		if seg == "" {
-			r.routePanicPrint(method, path, errors.New("路径中间不能有连续的 //"))
+			r.routePanicPrint("", method, path, errors.New("路径中间不能有连续的 //"))
 		}
 
 		//递归站准位置。中途节点不存在，就要创建
@@ -319,6 +354,6 @@ func checkRouteRegExp(reg string) bool {
 type RoutePanicPrintFunc func(method, path string, err error)
 
 // 路由错误告警
-func (r *router) routePanicPrint(method, path string, err error) {
-	panic(fmt.Sprintf("method: %s, path: %s, error: %+v", method, path, err))
+func (r *router) routePanicPrint(group, method, path string, err error) {
+	panic(fmt.Sprintf("group: %s, method: %s, path: %s, error: %+v", group, method, path, err))
 }
