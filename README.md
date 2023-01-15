@@ -59,10 +59,12 @@ span：用于调用tracer上的start方法，如果传入的context已经有一�
 <br>
 
 ### 2.5 error page
+支持定义不同状态码响应不同数据
 
 <br>
 
 ### 2.6 panic recover
+支持发生panic后，输出recover的error信息、context信息、stack堆栈信息
 
 <br>
 
@@ -444,4 +446,50 @@ go func() {
 }()
 
 s.Start(":8080")
+```
+
+error page
+```go
+builder := NewMiddlewareBuilder()
+builder.
+	AddResponseContent(http.StatusNotFound, []byte("404 NOT FOUND")).
+    AddResponseContent(http.StatusBadRequest, []byte("400 BAD REQUEST")).
+	Build()
+
+s := beweb.NewHTTPServer(beweb.WithMiddlewares(builder))
+s.Start(":8080")
+```
+
+panic recover
+```go
+builder := NewMiddlewareBuilder().
+    SetPanicResponse(510, []byte("SERVER PANIC")). //设置panic后响应的response
+	//输出context数据
+    SetLogWithContext(func(ctx *beweb.Context) {
+        fmt.Println("LogWithContext: ", string(ctx.ResponseContent))
+    }).
+    //输出panic recover的error数据
+    SetLogWithErr(func(err any) {
+        fmt.Println("LogWithErr: ", err.(string))
+    }).
+	//可覆盖设置，且会更新输出顺序
+    SetLogWithContext(func(ctx *beweb.Context) {
+        fmt.Println("LogWithContext1: ", string(ctx.ResponseContent))
+    }).
+	//输出错误堆栈信息
+    SetLogWithStack(func(stack string) {
+    	fmt.Println("LogWithStack: ", stack)
+    }).
+    Build()
+
+s := beweb.NewHTTPServer(beweb.WithMiddlewares(builder))
+s.Get("/panic", func(ctx *beweb.Context) {
+    value, _ := ctx.QueryValue("dev")
+    if value == "1" {
+        panic("panic aaaaaa")
+    }
+})
+
+s.Start(":8080")
+//curl http://127.0.0.1:8080/panic?dev=1
 ```

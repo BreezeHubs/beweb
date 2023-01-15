@@ -35,11 +35,9 @@ func (s *HTTPServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var m Middleware = func(next HandleFunc) HandleFunc {
 		return func(ctx *Context) {
 			next(ctx)
-
 			s.flashResponseData(ctx) //将response刷新给ctx.Resp
 		}
 	}
-	s.flashResponseData(ctx)
 
 	root = m(root)
 	root(ctx) //处理路由
@@ -74,5 +72,6 @@ func (s *HTTPServer) serve(ctx *Context) {
 
 	ctx.PathParams = info.pathParams //路由参数
 	ctx.MatchedRoute = info.n.route  //完整的命中的路由
-	info.n.handler(ctx)              //执行对应路由的服务
+
+	info.n.handler(ctx) //执行对应路由的服务
 }
