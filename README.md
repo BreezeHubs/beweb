@@ -83,8 +83,6 @@ TemplateEngine
 - http/template：一般用于渲染页面，是`text/template`的增强版，主要增强了安全性  
 - text/template：常用于各种代码生成  
 
-
-
 <br>
 
 ### 3.2 文件处理
@@ -542,4 +540,33 @@ s.Get("/panic", func(ctx *beweb.Context) {
 
 s.Start(":8080")
 //curl http://127.0.0.1:8080/panic?dev=1
+```
+
+### 4.7 页面模板渲染
+```go
+tpl, _ := template.ParseGlob("testdata/tpls/*.gohtml")
+
+s := beweb.NewHTTPServer(
+    beweb.WithTemplateEngine(
+        &beweb.GoTemplateEngine{Engine: tpl},
+    ),
+)
+
+s.Get("/login", func(ctx *beweb.Context) {
+    ctx.Render("login.gohtml", nil)
+})
+
+s.Start(":8080")
+```
+login.gohtml
+```html
+<html>
+    <body>
+        <form>
+            邮箱：<input type="email" placeholder="邮箱">
+            密码：<input type="password">
+            <button>登录</button>
+        </form>
+    </body>
+</html>
 ```

@@ -9,7 +9,6 @@ func (c *Context) Render(templateName string, data any) error {
 		return err
 	}
 
-	c.ResponseStatus = http.StatusOK
-	c.ResponseContent = bytes
+	c.Response(http.StatusOK, bytes)
 	return nil
 }

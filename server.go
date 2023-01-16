@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func NewHTTPServer(opts ...HTTPServerOpt) *HTTPServer {
+func NewHTTPServer(opts ...HTTPServerOpt) IHTTPServer {
 	s := &HTTPServer{
 		router: newRouter(), //路由树
 

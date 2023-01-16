@@ -12,21 +12,22 @@ type HTTPServer struct {
 	groupNameCache        string
 	groupMiddlewaresCache []Middleware
 
-	*router //存储路由树
+	*router                  //存储路由树
+	middlewares []Middleware //公共middlewares
 
-	middlewares []Middleware
-
+	//config
 	isGracefullyExit      bool          //是否开启优雅退出，默认关闭，默认false
 	isGracefullyExitFunc  func()        //自定义的优雅退出之前的回收操作，默认nil
 	gracefullyExitTimeout time.Duration //优雅退出超时，默认30s
+	shutdownTimeout       time.Duration //http退出超时，默认10s
 
-	shutdownTimeout time.Duration //http退出超时，默认10s
+	templateEngine TemplateEngine
 }
 
 // http.Handler接口 需要定义的方法
 func (s *HTTPServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	//框架http上下文
-	ctx := &Context{Req: r, Resp: w}
+	ctx := &Context{Req: r, Resp: w, templateEngine: s.templateEngine}
 
 	//Middlewares
 	//从后往前遍历，把后一个当前一个的next构建执行链条

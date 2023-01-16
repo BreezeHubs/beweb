@@ -1,6 +1,9 @@
 package beweb
 
-import "io"
+import (
+	"bytes"
+	"io"
+)
 
 // 初始化form数据
 func (c *Context) initFormValue() error {
@@ -34,6 +37,7 @@ func (c *Context) initBody() {
 	//不存在body缓存，则初始化缓存
 	if c.Body == nil {
 		bodyData, _ := io.ReadAll(c.Req.Body)
+		c.Req.Body = io.NopCloser(bytes.NewBuffer(bodyData))
 		c.Body = bodyData
 	}
 }

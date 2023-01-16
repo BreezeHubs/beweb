@@ -29,3 +29,10 @@ func WithShutdownTimeout(timeout time.Duration) HTTPServerOpt {
 		s.shutdownTimeout = timeout
 	}
 }
+
+// WithTemplateEngine 设置模板
+func WithTemplateEngine(templateEngine TemplateEngine) HTTPServerOpt {
+	return func(s *HTTPServer) {
+		s.templateEngine = templateEngine
+	}
+}
