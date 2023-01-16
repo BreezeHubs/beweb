@@ -8,6 +8,7 @@ import (
 var _ IHTTPServer = &HTTPServer{}
 
 type HTTPServer struct {
+	//路由组缓存
 	groupNameCache        string
 	groupMiddlewaresCache []Middleware
 
@@ -46,16 +47,6 @@ func (s *HTTPServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	root(ctx) //处理路由
 }
 
-// 将response刷新给ctx.Resp
-func (s *HTTPServer) flashResponseData(ctx *Context) {
-	if ctx.ResponseStatus != 0 {
-		ctx.Resp.WriteHeader(ctx.ResponseStatus)
-	}
-	if ctx.ResponseContent != nil && len(ctx.ResponseContent) > 0 {
-		_, _ = ctx.Resp.Write(ctx.ResponseContent)
-	}
-}
-
 // Serve 路由解析
 func (s *HTTPServer) serve(ctx *Context) {
 	//查找路由，执行业务逻辑
@@ -86,4 +77,14 @@ func (s *HTTPServer) serve(ctx *Context) {
 		}
 	}
 	root(ctx) //执行对应路由的服务
+}
+
+// 将response刷新给ctx.Resp
+func (s *HTTPServer) flashResponseData(ctx *Context) {
+	if ctx.ResponseStatus != 0 {
+		ctx.Resp.WriteHeader(ctx.ResponseStatus)
+	}
+	if ctx.ResponseContent != nil && len(ctx.ResponseContent) > 0 {
+		_, _ = ctx.Resp.Write(ctx.ResponseContent)
+	}
 }

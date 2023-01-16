@@ -76,7 +76,7 @@ func TestRouter_AddRoute(t *testing.T) {
 	var mockHandler HandleFunc = func(ctx *Context) {}
 	r := newRouter()
 	for _, route := range testRoutes {
-		r.addRoute(route.method, route.path, mockHandler)
+		r.addRoute("", route.method, route.path, mockHandler)
 	}
 
 	//断言路由树和预期的一样
@@ -163,33 +163,33 @@ func TestRouter_AddRoute(t *testing.T) {
 
 	r = newRouter()
 	assert.Panicsf(t, func() {
-		r.addRoute(http.MethodGet, "", mockHandler)
+		r.addRoute("", http.MethodGet, "", mockHandler)
 	}, "路径必须以 / 开头")
 
 	assert.Panicsf(t, func() {
-		r.addRoute(http.MethodGet, "/a/b/c/", mockHandler)
+		r.addRoute("", http.MethodGet, "/a/b/c/", mockHandler)
 	}, "路径不能以 / 结尾")
 
 	assert.Panicsf(t, func() {
-		r.addRoute(http.MethodGet, "/a///c/", mockHandler)
+		r.addRoute("", http.MethodGet, "/a///c/", mockHandler)
 	}, "路径中间不能有连续的 //")
 
 	r = newRouter()
-	r.addRoute(http.MethodGet, "/", mockHandler)
+	r.addRoute("", http.MethodGet, "/", mockHandler)
 	assert.Panicsf(t, func() {
-		r.addRoute(http.MethodGet, "/", mockHandler)
+		r.addRoute("", http.MethodGet, "/", mockHandler)
 	}, "路径不能重复注册[/]")
 
 	r = newRouter()
-	r.addRoute(http.MethodGet, "/a/b/c", mockHandler)
+	r.addRoute("", http.MethodGet, "/a/b/c", mockHandler)
 	assert.Panicsf(t, func() {
-		r.addRoute(http.MethodGet, "/a/b/c", mockHandler)
+		r.addRoute("", http.MethodGet, "/a/b/c", mockHandler)
 	}, "路径不能重复注册[/a/b/c]")
 
 	r = newRouter()
-	r.addRoute(http.MethodGet, "/a/*", mockHandler)
+	r.addRoute("", http.MethodGet, "/a/*", mockHandler)
 	assert.Panicsf(t, func() {
-		r.addRoute(http.MethodGet, "/a/:id", mockHandler)
+		r.addRoute("", http.MethodGet, "/a/:id", mockHandler)
 	}, "不允许同时存在参数路由和通配符路由，已存在通配符路由:id]")
 }
 
@@ -289,7 +289,7 @@ func TestRouter_findRoute(t *testing.T) {
 	r := newRouter()
 	var mockHandler HandleFunc = func(ctx *Context) {}
 	for _, route := range testRoutes {
-		r.addRoute(route.method, route.path, mockHandler)
+		r.addRoute("", route.method, route.path, mockHandler)
 	}
 	testCases := []struct {
 		name      string

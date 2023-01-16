@@ -7,7 +7,7 @@ type MiddlewareBuilder struct {
 }
 
 func NewMiddlewareBuilder() *MiddlewareBuilder {
-	return &MiddlewareBuilder{responseContent: make(map[int][]byte)}
+	return &MiddlewareBuilder{responseContent: make(map[int][]byte, 16)}
 }
 
 // AddResponseContent 增加响应

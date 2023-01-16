@@ -8,16 +8,16 @@ import (
 	"time"
 )
 
-type HandleFunc func(ctx *Context)
-
 func NewHTTPServer(opts ...HTTPServerOpt) *HTTPServer {
 	s := &HTTPServer{
-		router:                newRouter(),
+		router: newRouter(), //路由树
+
+		//默认配置
 		gracefullyExitTimeout: 30 * time.Second,
 		shutdownTimeout:       10 * time.Second,
 	}
 
-	//执行配置
+	//执行配置函数
 	for _, opt := range opts {
 		opt(s)
 	}
@@ -27,10 +27,7 @@ func NewHTTPServer(opts ...HTTPServerOpt) *HTTPServer {
 
 // Start 运行web服务
 func (s *HTTPServer) Start(addr string) error {
-	//创建退出信号监听
-	signal := sys.NewListenExitSignal()
-
-	//创建http server
+	//创建原生 http server
 	server := &http.Server{Addr: addr, Handler: s}
 	go func() {
 		//run http server
@@ -39,18 +36,23 @@ func (s *HTTPServer) Start(addr string) error {
 		}
 	}()
 
-	//监听退出信号
-	for !signal.IsExit() {
-		//fmt.Println("running...")
-		time.Sleep(10 * time.Millisecond)
-	}
-
-	//进行一些回收动作...
+	//是否开启优雅退出
 	if s.isGracefullyExit {
+		//创建退出信号监听
+		signal := sys.NewListenExitSignal()
+
+		//监听退出信号
+		for !signal.IsExit() {
+			//fmt.Println("running...")
+			time.Sleep(10 * time.Millisecond)
+		}
+
+		//创建超时控制
 		ctx, cancel := context.WithTimeout(context.Background(), s.shutdownTimeout)
 		defer cancel()
 		err := server.Shutdown(ctx)
 
+		//channel监听超时
 		done := make(chan struct{}, 1)
 		go func() {
 			//执行自定义回收
@@ -66,7 +68,8 @@ func (s *HTTPServer) Start(addr string) error {
 
 		fmt.Println("beweb exit")
 		return err
+	} else {
+		select {}
 	}
-
 	return nil
 }

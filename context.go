@@ -20,8 +20,10 @@ type Context struct {
 
 	MatchedRoute string //完整的命中的路由
 
-	ResponseStatus  int    `json:"response_status"`
-	ResponseContent []byte `json:"response_content"`
+	ResponseStatus  int
+	ResponseContent []byte
+
+	templateEngine TemplateEngine
 }
 
 type bodyBytes []byte

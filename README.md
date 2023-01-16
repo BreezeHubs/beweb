@@ -73,6 +73,17 @@ span：用于调用tracer上的start方法，如果传入的context已经有一�
 <br>
 
 ### 3.1 页面模板引擎
+TemplateEngine  
+支持简单的Render方法，不额外定义AddTemplate之类的模板管理方法在接口中：    
+- 单一职责原则：一个接口只做一件事  
+- 加入或删除一个模板，是具体模板引擎的事情，与web框架无关  
+![模板渲染](./resource/template.png)
+
+关于golang的模板包：    
+- http/template：一般用于渲染页面，是`text/template`的增强版，主要增强了安全性  
+- text/template：常用于各种代码生成  
+
+
 
 <br>
 

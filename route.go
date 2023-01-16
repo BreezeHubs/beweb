@@ -2,7 +2,6 @@ package beweb
 
 import (
 	"errors"
-	"fmt"
 	"regexp"
 	"strings"
 )
@@ -47,7 +46,7 @@ type node struct {
 	middlewares []Middleware
 }
 
-// 路由参数
+// 返回给http serve的路由数据
 type matchInfo struct {
 	n          *node
 	pathParams map[string]string
@@ -56,100 +55,7 @@ type matchInfo struct {
 // 创建router
 func newRouter() *router {
 	return &router{
-		trees: map[string]*node{},
-	}
-}
-
-// childOrCreate 查找或创建对应的path
-/*
-优先级：
-	1、route: /test/:id                => http://127.0.0.1:8080/test/1
-	2、route: /test/*\/user            => http://127.0.0.1:8080/test/abc/user
-	3、route: /test/Reg(^\d{4}-\d{8}$) => http://127.0.0.1:8080/test/0931-87562388
-
-	互相不能共存，2、3能和【静态路由】共存
-*/
-func (n *node) childOrCreate(path string) (*node, error) {
-	//【参数路由】处理
-	if path[0] == ':' {
-		//判断是否同时存在【通配符路由】
-		if n.startChild != nil {
-			return nil, errors.New("不允许同时存在【参数路由】和【通配符路由】，已存在【通配符路由】")
-		}
-		//判断是否同时存在【正则路由】
-		if n.regExpChild != nil {
-			return nil, errors.New("不允许同时存在【参数路由】和【正则路由】，已存在【正则路由】")
-		}
-		n.paramChild = &node{path: path}
-		return n.paramChild, nil
-	}
-
-	//【通配符路由】处理
-	if path == "*" {
-		//判断是否同时存在【参数路由】
-		if n.paramChild != nil {
-			return nil, errors.New("不允许同时存在【参数路由】和【通配符路由】，已存在【参数路由】")
-		}
-		//判断是否同时存在【正则路由】
-		if n.regExpChild != nil {
-			return nil, errors.New("不允许同时存在【通配符路由】和【正则路由】，已存在【正则路由】")
-		}
-
-		//不存在则创建
-		if n.startChild == nil {
-			n.startChild = &node{path: path}
-		}
-		return n.startChild, nil
-	}
-
-	//验证是否【正则路由】
-	if checkRouteRegExp(path) {
-		//判断是否同时存在【参数路由】
-		if n.paramChild != nil {
-			return nil, errors.New("不允许同时存在【正则路由】和【参数路由】，已存在【参数路由】")
-		}
-		//判断是否同时存在【通配符路由】
-		if n.startChild != nil {
-			return nil, errors.New("不允许同时存在【正则路由】和【通配符路由】，已存在【通配符路由】")
-		}
-
-		n.regExpChild = &node{path: getRouteRegExp(path)}
-		return n.regExpChild, nil
-	}
-
-	//【静态路由】
-	//不存在子节点则创建
-	if n.children == nil {
-		n.children = map[string]*node{}
-	}
-
-	//查找对应的path
-	res, ok := n.children[path]
-	if !ok {
-		//不存在，需要创建
-		res = &node{path: path}
-		n.children[path] = res
-	}
-	return res, nil
-}
-
-// 检查group格式
-func (r *router) checkGroupName(group, method, path string) {
-	if group != "" {
-		if group[0] != '/' {
-			r.routePanicPrint(group, method, path, errors.New("group 必须以 / 开头"))
-		}
-		if group != "/" && group[len(group)-1] == '/' {
-			r.routePanicPrint(group, method, path, errors.New("group 不能以 / 结尾"))
-		}
-		segs := strings.Split(path[1:], "/")
-		for _, seg := range segs {
-			//中间不能有连续的 ///
-			if seg == "" {
-				r.routePanicPrint(group, method, path, errors.New("group 中间不能有连续的 //"))
-			}
-		}
-		path = group + path
+		trees: make(map[string]*node, 16),
 	}
 }
 
@@ -226,6 +132,79 @@ func (r *router) addRoute(group, method string, path string, handleFunc HandleFu
 	return
 }
 
+// childOrCreate 查找或创建对应的path
+/*
+优先级：
+	1、route: /test/:id                => http://127.0.0.1:8080/test/1
+	2、route: /test/*\/user            => http://127.0.0.1:8080/test/abc/user
+	3、route: /test/Reg(^\d{4}-\d{8}$) => http://127.0.0.1:8080/test/0931-87562388
+
+	互相不能共存，2、3能和【静态路由】共存
+*/
+func (n *node) childOrCreate(path string) (*node, error) {
+	//【参数路由】处理
+	if path[0] == ':' {
+		//判断是否同时存在【通配符路由】
+		if n.startChild != nil {
+			return nil, errors.New("不允许同时存在【参数路由】和【通配符路由】，已存在【通配符路由】")
+		}
+		//判断是否同时存在【正则路由】
+		if n.regExpChild != nil {
+			return nil, errors.New("不允许同时存在【参数路由】和【正则路由】，已存在【正则路由】")
+		}
+		n.paramChild = &node{path: path}
+		return n.paramChild, nil
+	}
+
+	//【通配符路由】处理
+	if path == "*" {
+		//判断是否同时存在【参数路由】
+		if n.paramChild != nil {
+			return nil, errors.New("不允许同时存在【参数路由】和【通配符路由】，已存在【参数路由】")
+		}
+		//判断是否同时存在【正则路由】
+		if n.regExpChild != nil {
+			return nil, errors.New("不允许同时存在【通配符路由】和【正则路由】，已存在【正则路由】")
+		}
+
+		//不存在则创建
+		if n.startChild == nil {
+			n.startChild = &node{path: path}
+		}
+		return n.startChild, nil
+	}
+
+	//验证是否【正则路由】
+	if checkRouteRegExp(path) {
+		//判断是否同时存在【参数路由】
+		if n.paramChild != nil {
+			return nil, errors.New("不允许同时存在【正则路由】和【参数路由】，已存在【参数路由】")
+		}
+		//判断是否同时存在【通配符路由】
+		if n.startChild != nil {
+			return nil, errors.New("不允许同时存在【正则路由】和【通配符路由】，已存在【通配符路由】")
+		}
+
+		n.regExpChild = &node{path: getRouteRegExp(path)}
+		return n.regExpChild, nil
+	}
+
+	//【静态路由】
+	//不存在子节点则创建
+	if n.children == nil {
+		n.children = map[string]*node{}
+	}
+
+	//查找对应的path
+	res, ok := n.children[path]
+	if !ok {
+		//不存在，需要创建
+		res = &node{path: path}
+		n.children[path] = res
+	}
+	return res, nil
+}
+
 // findRoute 路由匹配时调用
 func (r *router) findRoute(method string, path string) (*matchInfo, bool) {
 	//找到顶层请求方法的树节点
@@ -261,7 +240,7 @@ func (r *router) findRoute(method string, path string) (*matchInfo, bool) {
 		//命中参数路由
 		if paramFound {
 			if pathParams == nil {
-				pathParams = make(map[string]string)
+				pathParams = make(map[string]string, 8)
 			}
 			pathParams[child.path[1:]] = seg
 		}
@@ -326,34 +305,4 @@ func (n *node) childOf(path string) (*node, bool, bool) {
 		return nil, false, false //匹配失败
 	}
 	return child, false, ok
-}
-
-var (
-	regFlagStart = "Reg("
-	regFlagEnd   = ")"
-)
-
-// 获取【正则路由】的正则
-// "Reg(^\d{4}-\d{8}$)"  =>  "^\d{4}-\d{8}$"
-func getRouteRegExp(reg string) string {
-	if len(reg) < 5 {
-		return ""
-	}
-	return reg[4 : len(reg)-1]
-}
-
-// 检查是否是【正则路由】
-// "Reg(^\d{4}-\d{8}$)"  =>  "Reg("、")"
-func checkRouteRegExp(reg string) bool {
-	if len(reg) < 5 {
-		return false
-	}
-	return regFlagStart == reg[:4] && reg[len(reg)-1:] == regFlagEnd
-}
-
-type RoutePanicPrintFunc func(method, path string, err error)
-
-// 路由错误告警
-func (r *router) routePanicPrint(group, method, path string, err error) {
-	panic(fmt.Sprintf("group: %s, method: %s, path: %s, error: %+v", group, method, path, err))
 }

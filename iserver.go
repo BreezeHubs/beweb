@@ -5,6 +5,7 @@ import "net/http"
 type IHTTPServer interface {
 	http.Handler
 
+	Group(groupName string, middlewares ...Middleware) *HTTPServer
 	/*
 		请求方法
 	*/
