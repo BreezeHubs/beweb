@@ -85,8 +85,12 @@ TemplateEngine
 
 <br>
 
-### 3.2 文件处理
-上传文件：支持获取`FormFile`和`可路由注册的file handler`两种方式
+### 3.2 文件处理  
+上传文件：支持获取`FormFile`和`可路由注册的file handle`两种方式  
+下载文件：封装设置请求头，支持获取`DownLoadFile`和`可路由注册的file handle`两种方式  
+静态资源处理：与下载文件差不多，不设置header attachment即可直接访问；静态资源多为不常改动、经常访问，需要有缓存措施  
+- 不能使用`http.ServeFile`输出  
+- 考虑文件缓存占用大小问题  
 
 <br>
 
@@ -602,9 +606,9 @@ s.Post("/upload",
     beweb.NewFileUploader(
         "myfile",
         func(header *multipart.FileHeader) string {
-            return "./cmd/upload/" + strconv.Itoa(time.Now().Nanosecond()) + filepath.Ext(header.Filename)
+            return "./testdata/upload/" + strconv.Itoa(time.Now().Nanosecond()) + filepath.Ext(header.Filename)
         },
-    ).Handler(),
+    ).Handle(),
 )
 
 //方式2：FormFile
@@ -619,10 +623,10 @@ s.Start(":8080")
 ```go
 s := beweb.NewHTTPServer()
 
-s.Get("/download", beweb.NewFileDownloader("./cmd/upload").Handler())
+s.Get("/download", beweb.NewFileDownloader("./testdata/upload").Handle())
 s.Get("/download1", func(ctx *beweb.Context) {
     file, _ := ctx.QueryValue("file")
-    ctx.DownLoadFile("./cmd/upload/" + file) //调用下载
+    ctx.DownLoadFile("./testdata/upload/" + file) //调用下载
 })
 
 s.Start(":8080")
@@ -632,7 +636,7 @@ s.Start(":8080")
 s := beweb.NewHTTPServer()
 
 s.Get("/download", func(ctx *beweb.Context) {
-    handler := beweb.NewFileDownloader("./cmd/upload").Handler()
+    handler := beweb.NewFileDownloader("./testdata/upload").Handle()
     handler(ctx)
 	
     if ctx.ResponseStatus == http.StatusBadRequest {
@@ -642,4 +646,18 @@ s.Get("/download", func(ctx *beweb.Context) {
 })
 
 s.Start(":8080")
+```
+访问静态文件
+```go
+s := beweb.NewHTTPServer()
+
+s.Get("/static/:file",
+    beweb.NewStaticResourceHandler("./../testdata/static/").
+        SetCacheCapSize(1000).
+        SetCacheSize(2*1024*1024, 100*1024*1024).
+        SetExtTypeMap(map[string]string{}).
+        Handle(),
+)
+s.Start(":8080")
+// http://127.0.0.1:8080/static/test.js
 ```

@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/BreezeHubs/bekit v0.0.0-20230105101649-fe361a4fa1a8
+	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e
 	github.com/json-iterator/go v1.1.12
 	github.com/prometheus/client_golang v1.14.0
 	github.com/stretchr/testify v1.8.1
