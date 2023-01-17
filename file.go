@@ -33,7 +33,7 @@ func (f FileUploader) Handler() HandleFunc {
 		//上传逻辑
 
 		//读取到文件内容
-		file, header, err := ctx.Req.FormFile(f.FileField)
+		file, header, err := ctx.FormFileValue(f.FileField)
 		if err != nil {
 			ctx.Response(http.StatusInternalServerError, []byte("文件上传失败: "+err.Error()))
 			return

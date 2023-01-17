@@ -206,28 +206,21 @@ func main() {
 
 	s.Get("/upload_page", func(ctx *beweb.Context) {
 		tpl := template.New("upload")
-		tpl, err := tpl.Parse(`
-<html>
-<body>
-	<form action="/upload" method="post" enctype="multipart/form-data">
-		 <input type="file" name="myfile" />
-		 <button type="submit">上传</button>
-	</form>
-</body>
-<html>
-`)
+		tpl, err := tpl.Parse(`<html><body>
+<form action="/upload" method="post" enctype="multipart/form-data">
+<input type="file" name="myfile"><button type="submit">上传</button>
+</form>
+</body><html>`)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 
 		page := &bytes.Buffer{}
-
 		if err = tpl.Execute(page, nil); err != nil {
 			fmt.Println(err)
 			return
 		}
-
 		ctx.Response(http.StatusOK, page.Bytes())
 	})
 
