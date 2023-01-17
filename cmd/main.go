@@ -1,15 +1,9 @@
 package main
 
 import (
-	"bytes"
-	"fmt"
 	"github.com/BreezeHubs/beweb"
-	"html/template"
-	"mime/multipart"
+	"github.com/BreezeHubs/beweb/util"
 	"net/http"
-	"path/filepath"
-	"strconv"
-	"time"
 )
 
 func main() {
@@ -204,34 +198,49 @@ func main() {
 	//	ctx.Response(200, []byte("name"))
 	//})
 
-	s.Get("/upload_page", func(ctx *beweb.Context) {
-		tpl := template.New("upload")
-		tpl, err := tpl.Parse(`<html><body>
-<form action="/upload" method="post" enctype="multipart/form-data">
-<input type="file" name="myfile"><button type="submit">上传</button>
-</form>
-</body><html>`)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
+	//	s.Get("/upload_page", func(ctx *beweb.Context) {
+	//		tpl := template.New("upload")
+	//		tpl, err := tpl.Parse(`<html><body>
+	//<form action="/upload" method="post" enctype="multipart/form-data">
+	//<input type="file" name="myfile"><button type="submit">上传</button>
+	//</form>
+	//</body><html>`)
+	//		if err != nil {
+	//			fmt.Println(err)
+	//			return
+	//		}
+	//
+	//		page := &bytes.Buffer{}
+	//		if err = tpl.Execute(page, nil); err != nil {
+	//			fmt.Println(err)
+	//			return
+	//		}
+	//		ctx.Response(http.StatusOK, page.Bytes())
+	//	})
+	//
+	//	s.Post("/upload",
+	//		beweb.NewFileUploader(
+	//			"myfile",
+	//			func(header *multipart.FileHeader) string {
+	//				return "./cmd/upload/" + strconv.Itoa(time.Now().Nanosecond()) + filepath.Ext(header.Filename)
+	//			},
+	//		).Handler(),
+	//	)
+	//
+	//	s.Post("/upload1", func(ctx *beweb.Context) {
+	//		value, header, err := ctx.FormFileValue("myfile")
+	//		fmt.Println(value, header, err)
+	//	})
 
-		page := &bytes.Buffer{}
-		if err = tpl.Execute(page, nil); err != nil {
-			fmt.Println(err)
+	s.Get("/download", func(ctx *beweb.Context) {
+		handler := beweb.NewFileDownloader("./cmd/upload").Handler()
+		handler(ctx)
+
+		if ctx.ResponseStatus == http.StatusBadRequest {
+			util.ResponseJSONFail(ctx, "FILE ERROR", string(ctx.ResponseContent))
 			return
 		}
-		ctx.Response(http.StatusOK, page.Bytes())
 	})
-
-	s.Post("/upload",
-		beweb.NewFileUploader(
-			"myfile",
-			func(header *multipart.FileHeader) string {
-				return "./cmd/upload/" + strconv.Itoa(time.Now().Nanosecond()) + filepath.Ext(header.Filename)
-			},
-		).Handler(),
-	)
 
 	s.Start(":8080")
 }

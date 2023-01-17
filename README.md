@@ -86,8 +86,7 @@ TemplateEngine
 <br>
 
 ### 3.2 文件处理
-
-
+上传文件：支持获取`FormFile`和`可路由注册的file handler`两种方式
 
 <br>
 
@@ -571,4 +570,70 @@ login.gohtml
         </form>
     </body>
 </html>
+```
+
+### 4.8 文件操作
+文件上传  
+```go
+s := beweb.NewHTTPServer()
+
+s.Get("/upload_page", func(ctx *beweb.Context) {
+    tpl := template.New("upload")
+    tpl, err := tpl.Parse(`<html><body>
+<form action="/upload" method="post" enctype="multipart/form-data">
+<input type="file" name="myfile"><button type="submit">上传</button>
+</form>
+</body><html>`)
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+
+    page := &bytes.Buffer{}
+    if err = tpl.Execute(page, nil); err != nil {
+        fmt.Println(err)
+        return
+    }
+    ctx.Response(http.StatusOK, page.Bytes())
+})
+
+//方式1：路由注册的file handler
+s.Post("/upload",
+    beweb.NewFileUploader(
+        "myfile",
+        func(header *multipart.FileHeader) string {
+            return "./cmd/upload/" + strconv.Itoa(time.Now().Nanosecond()) + filepath.Ext(header.Filename)
+        },
+    ).Handler(),
+)
+
+//方式2：FormFile
+s.Post("/upload1", func(ctx *beweb.Context) {
+    value, header, err := ctx.FormFileValue("myfile")
+    fmt.Println(value, header, err)
+})
+
+s.Start(":8080")
+```
+文件下载
+```go
+s := beweb.NewHTTPServer()
+s.Get("/download", beweb.NewFileDownloader("./cmd/upload").Handler())
+s.Start(":8080")
+```
+扩展：重写handler  
+```go
+s := beweb.NewHTTPServer()
+
+s.Get("/download", func(ctx *beweb.Context) {
+    handler := beweb.NewFileDownloader("./cmd/upload").Handler()
+    handler(ctx)
+	
+    if ctx.ResponseStatus == http.StatusBadRequest {
+        util.ResponseJSONFail(ctx, "FILE ERROR", string(ctx.ResponseContent))
+        return
+    }
+})
+
+s.Start(":8080")
 ```
