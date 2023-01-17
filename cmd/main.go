@@ -2,8 +2,6 @@ package main
 
 import (
 	"github.com/BreezeHubs/beweb"
-	"github.com/BreezeHubs/beweb/util"
-	"net/http"
 )
 
 func main() {
@@ -232,14 +230,19 @@ func main() {
 	//		fmt.Println(value, header, err)
 	//	})
 
-	s.Get("/download", func(ctx *beweb.Context) {
-		handler := beweb.NewFileDownloader("./cmd/upload").Handler()
-		handler(ctx)
+	//s.Get("/download", func(ctx *beweb.Context) {
+	//	handler := beweb.NewFileDownloader("./cmd/upload").Handler()
+	//	handler(ctx)
+	//
+	//	if ctx.ResponseStatus == http.StatusBadRequest {
+	//		util.ResponseJSONFail(ctx, "FILE ERROR", string(ctx.ResponseContent))
+	//		return
+	//	}
+	//})
 
-		if ctx.ResponseStatus == http.StatusBadRequest {
-			util.ResponseJSONFail(ctx, "FILE ERROR", string(ctx.ResponseContent))
-			return
-		}
+	s.Get("/download1", func(ctx *beweb.Context) {
+		file, _ := ctx.QueryValue("file")
+		ctx.DownLoadFile("./cmd/upload/" + file)
 	})
 
 	s.Start(":8080")

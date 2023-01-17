@@ -3,7 +3,6 @@ package beweb
 import (
 	"bytes"
 	"errors"
-	"mime/multipart"
 )
 
 type stringValue struct {
@@ -117,12 +116,3 @@ func (c *Context) HeaderValueAll() map[string]string {
 }
 
 /* -------------------------------------- Header -------------------------------------- */
-
-/* -------------------------------------- Form File -------------------------------------- */
-
-func (c *Context) FormFileValue(key string) (multipart.File, *multipart.FileHeader, error) {
-	file, header, err := c.Req.FormFile(key)
-	return file, header, err
-}
-
-/* -------------------------------------- Form File -------------------------------------- */

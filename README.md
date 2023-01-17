@@ -618,7 +618,13 @@ s.Start(":8080")
 文件下载
 ```go
 s := beweb.NewHTTPServer()
+
 s.Get("/download", beweb.NewFileDownloader("./cmd/upload").Handler())
+s.Get("/download1", func(ctx *beweb.Context) {
+    file, _ := ctx.QueryValue("file")
+    ctx.DownLoadFile("./cmd/upload/" + file) //调用下载
+})
+
 s.Start(":8080")
 ```
 扩展：重写handler  
