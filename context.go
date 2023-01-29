@@ -24,6 +24,8 @@ type Context struct {
 	ResponseContent []byte
 
 	templateEngine TemplateEngine
+
+	UserValues map[string]any //用户数据缓存
 }
 
 type bodyBytes []byte

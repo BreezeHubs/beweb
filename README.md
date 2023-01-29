@@ -95,6 +95,18 @@ TemplateEngine
 <br>
 
 ### 3.3 Session
+无侵入方案，以middleware方式使用  
+session是web应用的一部分，而非web框架的一部分  
+非侵入式的原因：  
+- 坚持开闭原则：所有侵入式设计都违背该原则。侵入式设计需要修改已有的实现，而不是提供新的实现  
+- 代码男维护：增加代码复杂度  
+- Do less：侵入式设计是无法满足所有用户需求的，所以将选择器归还给用户  
+
+session模块----->propagator、session、stroe  
+需要提供的功能：  
+- 管理session：创建、查找、销毁和刷新  
+- session存储和提取  
+- session id存储和提取  
 
 <br>
 
